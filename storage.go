@@ -1,4 +1,4 @@
-package example
+package hdfs
 
 import (
 	"context"

@@ -1,4 +1,4 @@
-package example
+package hdfs
 
 import (
 	"github.com/aos-dev/go-storage/v3/types"
