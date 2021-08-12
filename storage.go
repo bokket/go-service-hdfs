@@ -93,29 +93,12 @@ func (s *Storage) delete(ctx context.Context, path string, opt pairStorageDelete
 }
 
 func (s *Storage) list(ctx context.Context, path string, opt pairStorageList) (oi *ObjectIterator, err error) {
-	rp := s.getAbsPath(path)
 	if !opt.HasListMode || opt.ListMode.IsDir() {
-		nextFn := func(ctx context.Context, page *ObjectPage) error {
-			dir, err := s.hdfs.ReadDir(rp)
-			if err != nil {
-				return err
-			}
-			for _, f := range dir {
-				o := NewObject(s, true)
-				o.Path = f.Name()
-				if f.IsDir() {
-					o.Mode |= ModeDir
-				} else {
-					o.Mode |= ModeRead
-				}
-
-				o.SetContentLength(f.Size())
-				page.Data = append(page.Data, o)
-			}
-			return IterateDone
+		input := &listDirInput{
+			rp:                s.getAbsPath(path),
+			continuationToken: opt.ContinuationToken,
 		}
-		oi = NewObjectIterator(ctx, nextFn, nil)
-		return
+		return NewObjectIterator(ctx, s.listDirNext, input), nil
 	} else {
 		return nil, services.ListModeInvalidError{Actual: opt.ListMode}
 	}
@@ -143,6 +126,14 @@ func (s *Storage) move(ctx context.Context, src string, dst string, opt pairStor
 func (s *Storage) read(ctx context.Context, path string, w io.Writer, opt pairStorageRead) (n int64, err error) {
 	rp := s.getAbsPath(path)
 	f, err := s.hdfs.Open(rp)
+
+	defer func() {
+		closeErr := f.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+
 	if err != nil {
 		return 0, err
 	}
@@ -211,7 +202,10 @@ func (s *Storage) write(ctx context.Context, path string, r io.Reader, size int6
 		return 0, err
 	}
 	defer func() {
-		err = f.Close()
+		closeErr := f.Close()
+		if err == nil {
+			err = closeErr
+		}
 	}()
 
 	if opt.HasIoCallback {

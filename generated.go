@@ -326,9 +326,11 @@ func (s *Storage) parsePairStorageDelete(opts []Pair) (pairStorageDelete, error)
 
 // pairStorageList is the parsed struct
 type pairStorageList struct {
-	pairs       []Pair
-	HasListMode bool
-	ListMode    ListMode
+	pairs                []Pair
+	HasContinuationToken bool
+	ContinuationToken    string
+	HasListMode          bool
+	ListMode             ListMode
 }
 
 // parsePairStorageList will parse Pair slice into *pairStorageList
@@ -339,6 +341,13 @@ func (s *Storage) parsePairStorageList(opts []Pair) (pairStorageList, error) {
 
 	for _, v := range opts {
 		switch v.Key {
+		case "continuation_token":
+			if result.HasContinuationToken {
+				continue
+			}
+			result.HasContinuationToken = true
+			result.ContinuationToken = v.Value.(string)
+			continue
 		case "list_mode":
 			if result.HasListMode {
 				continue
