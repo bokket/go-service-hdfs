@@ -98,7 +98,7 @@ func (s *Storage) getAbsPath(path string) string {
 	if filepath.IsAbs(path) {
 		return path
 	}
-	return s.workDir + path
+	return filepath.Join(s.workDir, path)
 }
 
 func (s *Storage) formatError(op string, err error, path ...string) error {

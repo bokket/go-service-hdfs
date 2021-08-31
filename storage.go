@@ -138,7 +138,7 @@ func (s *Storage) read(ctx context.Context, path string, w io.Writer, opt pairSt
 		return 0, err
 	}
 	if opt.HasOffset {
-		_, err = f.Seek(opt.Offset, 0)
+		_, err := f.Seek(opt.Offset, 0)
 		if err != nil {
 			return 0, err
 		}
@@ -149,6 +149,9 @@ func (s *Storage) read(ctx context.Context, path string, w io.Writer, opt pairSt
 
 	if opt.HasIoCallback {
 		rc = iowrap.CallbackReader(rc, opt.IoCallback)
+	}
+	if opt.HasSize {
+		return io.CopyN(w, f, opt.Size)
 	}
 
 	return io.Copy(w, f)
