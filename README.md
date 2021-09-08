@@ -18,7 +18,7 @@ go get github.com/beyondstorage/go-service-hdfs
 import (
 	"log"
 	
-    _ "github.com/beyondstorage/go-service-hdfs"
+	_ "github.com/beyondstorage/go-service-hdfs"
 	"github.com/beyondstorage/go-storage/v4/services"
 )
 
