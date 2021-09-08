@@ -107,7 +107,6 @@ var pairMap = map[string]string{
 	"work_dir":              "string",
 }
 var (
-	_ Appender = &Storage{}
 	_ Direr    = &Storage{}
 	_ Mover    = &Storage{}
 	_ Storager = &Storage{}
@@ -177,41 +176,15 @@ func parsePairStorageNew(opts []Pair) (pairStorageNew, error) {
 
 // DefaultStoragePairs is default pairs for specific action
 type DefaultStoragePairs struct {
-	CommitAppend []Pair
-	Create       []Pair
-	CreateAppend []Pair
-	CreateDir    []Pair
-	Delete       []Pair
-	List         []Pair
-	Metadata     []Pair
-	Move         []Pair
-	Read         []Pair
-	Stat         []Pair
-	Write        []Pair
-	WriteAppend  []Pair
-}
-
-// pairStorageCommitAppend is the parsed struct
-type pairStorageCommitAppend struct {
-	pairs []Pair
-}
-
-// parsePairStorageCommitAppend will parse Pair slice into *pairStorageCommitAppend
-func (s *Storage) parsePairStorageCommitAppend(opts []Pair) (pairStorageCommitAppend, error) {
-	result := pairStorageCommitAppend{
-		pairs: opts,
-	}
-
-	for _, v := range opts {
-		switch v.Key {
-		default:
-			return pairStorageCommitAppend{}, services.PairUnsupportedError{Pair: v}
-		}
-	}
-
-	// Check required pairs.
-
-	return result, nil
+	Create    []Pair
+	CreateDir []Pair
+	Delete    []Pair
+	List      []Pair
+	Metadata  []Pair
+	Move      []Pair
+	Read      []Pair
+	Stat      []Pair
+	Write     []Pair
 }
 
 // pairStorageCreate is the parsed struct
@@ -238,29 +211,6 @@ func (s *Storage) parsePairStorageCreate(opts []Pair) (pairStorageCreate, error)
 			continue
 		default:
 			return pairStorageCreate{}, services.PairUnsupportedError{Pair: v}
-		}
-	}
-
-	// Check required pairs.
-
-	return result, nil
-}
-
-// pairStorageCreateAppend is the parsed struct
-type pairStorageCreateAppend struct {
-	pairs []Pair
-}
-
-// parsePairStorageCreateAppend will parse Pair slice into *pairStorageCreateAppend
-func (s *Storage) parsePairStorageCreateAppend(opts []Pair) (pairStorageCreateAppend, error) {
-	result := pairStorageCreateAppend{
-		pairs: opts,
-	}
-
-	for _, v := range opts {
-		switch v.Key {
-		default:
-			return pairStorageCreateAppend{}, services.PairUnsupportedError{Pair: v}
 		}
 	}
 
@@ -543,58 +493,6 @@ func (s *Storage) parsePairStorageWrite(opts []Pair) (pairStorageWrite, error) {
 	return result, nil
 }
 
-// pairStorageWriteAppend is the parsed struct
-type pairStorageWriteAppend struct {
-	pairs []Pair
-}
-
-// parsePairStorageWriteAppend will parse Pair slice into *pairStorageWriteAppend
-func (s *Storage) parsePairStorageWriteAppend(opts []Pair) (pairStorageWriteAppend, error) {
-	result := pairStorageWriteAppend{
-		pairs: opts,
-	}
-
-	for _, v := range opts {
-		switch v.Key {
-		default:
-			return pairStorageWriteAppend{}, services.PairUnsupportedError{Pair: v}
-		}
-	}
-
-	// Check required pairs.
-
-	return result, nil
-}
-
-// CommitAppend will commit and finish an append process.
-//
-// This function will create a context by default.
-func (s *Storage) CommitAppend(o *Object, pairs ...Pair) (err error) {
-	ctx := context.Background()
-	return s.CommitAppendWithContext(ctx, o, pairs...)
-}
-
-// CommitAppendWithContext will commit and finish an append process.
-func (s *Storage) CommitAppendWithContext(ctx context.Context, o *Object, pairs ...Pair) (err error) {
-	defer func() {
-		err = s.formatError("commit_append", err)
-	}()
-	if !o.Mode.IsAppend() {
-		err = services.ObjectModeInvalidError{Expected: ModeAppend, Actual: o.Mode}
-		return
-	}
-
-	pairs = append(pairs, s.defaultPairs.CommitAppend...)
-	var opt pairStorageCommitAppend
-
-	opt, err = s.parsePairStorageCommitAppend(pairs)
-	if err != nil {
-		return
-	}
-
-	return s.commitAppend(ctx, o, opt)
-}
-
 // Create will create a new object without any api call.
 //
 // ## Behavior
@@ -611,43 +509,6 @@ func (s *Storage) Create(path string, pairs ...Pair) (o *Object) {
 	opt, _ = s.parsePairStorageCreate(pairs)
 
 	return s.create(path, opt)
-}
-
-// CreateAppend will create an append object.
-//
-// ## Behavior
-//
-// - CreateAppend SHOULD create an appendable object with position 0 and size 0.
-// - CreateAppend SHOULD NOT return an error as the object exist.
-//   - Service SHOULD check and delete the object if exists.
-//
-// This function will create a context by default.
-func (s *Storage) CreateAppend(path string, pairs ...Pair) (o *Object, err error) {
-	ctx := context.Background()
-	return s.CreateAppendWithContext(ctx, path, pairs...)
-}
-
-// CreateAppendWithContext will create an append object.
-//
-// ## Behavior
-//
-// - CreateAppend SHOULD create an appendable object with position 0 and size 0.
-// - CreateAppend SHOULD NOT return an error as the object exist.
-//   - Service SHOULD check and delete the object if exists.
-func (s *Storage) CreateAppendWithContext(ctx context.Context, path string, pairs ...Pair) (o *Object, err error) {
-	defer func() {
-		err = s.formatError("create_append", err, path)
-	}()
-
-	pairs = append(pairs, s.defaultPairs.CreateAppend...)
-	var opt pairStorageCreateAppend
-
-	opt, err = s.parsePairStorageCreateAppend(pairs)
-	if err != nil {
-		return
-	}
-
-	return s.createAppend(ctx, path, opt)
 }
 
 // CreateDir will create a new dir object.
@@ -916,35 +777,6 @@ func (s *Storage) WriteWithContext(ctx context.Context, path string, r io.Reader
 	}
 
 	return s.write(ctx, path, r, size, opt)
-}
-
-// WriteAppend will append content to an append object.
-//
-// This function will create a context by default.
-func (s *Storage) WriteAppend(o *Object, r io.Reader, size int64, pairs ...Pair) (n int64, err error) {
-	ctx := context.Background()
-	return s.WriteAppendWithContext(ctx, o, r, size, pairs...)
-}
-
-// WriteAppendWithContext will append content to an append object.
-func (s *Storage) WriteAppendWithContext(ctx context.Context, o *Object, r io.Reader, size int64, pairs ...Pair) (n int64, err error) {
-	defer func() {
-		err = s.formatError("write_append", err)
-	}()
-	if !o.Mode.IsAppend() {
-		err = services.ObjectModeInvalidError{Expected: ModeAppend, Actual: o.Mode}
-		return
-	}
-
-	pairs = append(pairs, s.defaultPairs.WriteAppend...)
-	var opt pairStorageWriteAppend
-
-	opt, err = s.parsePairStorageWriteAppend(pairs)
-	if err != nil {
-		return
-	}
-
-	return s.writeAppend(ctx, o, r, size, opt)
 }
 
 func init() {

@@ -1,7 +1,7 @@
 name = "hdfs"
 
 [namespace.storage]
-implement = ["direr","mover","appender"]
+implement = ["direr","mover"]
 
 [namespace.storage.new]
 required = ["endpoint"]

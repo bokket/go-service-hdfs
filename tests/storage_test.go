@@ -27,10 +27,3 @@ func TestMover(t *testing.T) {
 	}
 	tests.TestMover(t, setupTest(t))
 }
-
-func TestAppender(t *testing.T) {
-	if os.Getenv("STORAGE_HDFS_INTEGRATION_TEST") != "on" {
-		t.Skipf("STORAGE_HDFS_INTEGRATION_TEST is not 'on', skipped")
-	}
-	tests.TestAppender(t, setupTest(t))
-}
