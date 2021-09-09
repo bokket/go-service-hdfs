@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 
 	"github.com/beyondstorage/go-endpoint"
@@ -94,11 +95,11 @@ func formatError(err error) error {
 	}
 }
 
-func (s *Storage) getAbsPath(path string) string {
-	if filepath.IsAbs(path) {
-		return path
+func (s *Storage) getAbsPath(fp string) string {
+	if filepath.IsAbs(fp) {
+		return fp
 	}
-	return filepath.Join(s.workDir, path)
+	return path.Join(s.workDir, fp)
 }
 
 func (s *Storage) formatError(op string, err error, path ...string) error {
