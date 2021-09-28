@@ -1,6 +1,7 @@
 package hdfs
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io"
@@ -153,6 +154,14 @@ func (s *Storage) stat(ctx context.Context, path string, opt pairStorageStat) (o
 func (s *Storage) write(ctx context.Context, path string, r io.Reader, size int64, opt pairStorageWrite) (n int64, err error) {
 	rp := s.getAbsPath(path)
 	dir := filepath.Dir(rp)
+
+	if size == 0 {
+		r = bytes.NewReader([]byte{})
+	}
+
+	if r == nil {
+		return 0, services.ErrObjectNotExist
+	}
 
 	//	If dirname is already a directory,
 	// 	MkdirAll does nothing and returns nil.
