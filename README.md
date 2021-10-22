@@ -1,10 +1,14 @@
-[![Build Status](https://github.com/beyondstorage/go-service-hdfs/workflows/Unit%20Test/badge.svg?branch=master)](https://github.com/beyondstorage/go-service-hdfs/actions?query=workflow%3A%22Unit+Test%22)
-[![License](https://img.shields.io/badge/license-apache%20v2-blue.svg)](https://github.com/Xuanwo/storage/blob/master/LICENSE)
-[![](https://img.shields.io/matrix/beyondstorage@go-storage:matrix.org.svg?logo=matrix)](https://matrix.to/#/#beyondstorage@go-storage:matrix.org)
-
 # go-service-hdfs 
 
 Hadoop Distributed File System (HDFS) support for [go-storage](https://github.com/beyondstorage/go-storage).
+
+## Notes
+
+**This package has been moved to [go-storage](https://github.com/beyondstorage/go-storage/tree/master/services/hdfs).**
+
+```shell
+go get go.beyondstorage.io/services/hdfs
+```
 
 ## Install
 
